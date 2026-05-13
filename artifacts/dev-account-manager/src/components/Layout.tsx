@@ -26,12 +26,12 @@ export function Layout({ children }: LayoutProps) {
       {/* Sidebar */}
       <aside className="w-60 border-r border-border bg-sidebar flex flex-col hidden md:flex shrink-0">
         <div className="p-4 flex items-center gap-2.5">
-          <div className="h-8 w-8 border border-primary flex items-center justify-center">
+          <div className="h-8 w-8 border border-primary flex items-center justify-center shrink-0">
             <Terminal className="h-4 w-4 text-primary" />
           </div>
-          <div>
-            <div className="text-xs font-bold text-primary tracking-widest uppercase">DevAccounts</div>
-            <div className="text-[10px] text-muted-foreground tracking-wider">v1.0.0_stable</div>
+          <div className="min-w-0">
+            <div className="text-sm font-bold text-primary tracking-widest uppercase leading-tight">KENC VIBECODE</div>
+            <div className="text-[10px] text-muted-foreground tracking-wider">dev account manager</div>
           </div>
         </div>
         
