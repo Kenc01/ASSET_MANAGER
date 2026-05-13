@@ -116,52 +116,52 @@
 }
 
 .dark {
-  --button-outline: rgba(80, 220, 120, 0.14);
-  --badge-outline: rgba(80, 220, 120, 0.07);
+  --button-outline: rgba(80, 220, 120, 0.15);
+  --badge-outline: rgba(80, 220, 120, 0.08);
   --opaque-button-border-intensity: 9;
-  --elevate-1: rgba(80, 220, 120, 0.04);
-  --elevate-2: rgba(80, 220, 120, 0.09);
+  --elevate-1: rgba(255, 255, 255, 0.03);
+  --elevate-2: rgba(255, 255, 255, 0.06);
 
-  /* Readable hacker theme — softer green, dark charcoal bg */
-  --background: 0 0% 7%;
-  --foreground: 120 55% 82%;
-  --card: 0 0% 10%;
-  --card-foreground: 120 55% 82%;
-  --card-border: 120 40% 18%;
-  --popover: 0 0% 11%;
-  --popover-foreground: 120 55% 82%;
-  --popover-border: 120 40% 18%;
-  --primary: 120 70% 52%;
-  --primary-foreground: 0 0% 5%;
-  --secondary: 120 20% 14%;
-  --secondary-foreground: 120 55% 82%;
-  --muted: 120 12% 12%;
-  --muted-foreground: 120 30% 55%;
-  --accent: 120 20% 16%;
-  --accent-foreground: 120 55% 82%;
+  /* Hacker dark — white body text, green accents */
+  --background: 0 0% 8%;
+  --foreground: 0 0% 93%;
+  --card: 0 0% 11%;
+  --card-foreground: 0 0% 93%;
+  --card-border: 120 40% 16%;
+  --popover: 0 0% 12%;
+  --popover-foreground: 0 0% 93%;
+  --popover-border: 120 30% 16%;
+  --primary: 120 65% 48%;
+  --primary-foreground: 0 0% 4%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 90%;
+  --muted: 0 0% 14%;
+  --muted-foreground: 0 0% 55%;
+  --accent: 120 20% 15%;
+  --accent-foreground: 0 0% 93%;
   --destructive: 0 70% 50%;
   --destructive-foreground: 0 0% 98%;
-  --border: 120 30% 18%;
-  --input: 120 15% 13%;
-  --ring: 120 70% 52%;
+  --border: 0 0% 18%;
+  --input: 0 0% 14%;
+  --ring: 120 65% 48%;
 
-  /* Chart colors — green spectrum */
-  --chart-1: 120 70% 52%;
-  --chart-2: 120 55% 40%;
-  --chart-3: 90 70% 50%;
-  --chart-4: 150 65% 42%;
-  --chart-5: 60 80% 52%;
+  /* Chart colors */
+  --chart-1: 120 65% 48%;
+  --chart-2: 120 50% 38%;
+  --chart-3: 90 65% 48%;
+  --chart-4: 150 60% 40%;
+  --chart-5: 60 75% 50%;
 
   --sidebar: 0 0% 6%;
-  --sidebar-foreground: 120 50% 78%;
-  --sidebar-border: 120 30% 16%;
-  --sidebar-primary: 120 70% 52%;
-  --sidebar-primary-foreground: 0 0% 5%;
-  --sidebar-accent: 120 20% 14%;
-  --sidebar-accent-foreground: 120 55% 82%;
-  --sidebar-ring: 120 70% 52%;
+  --sidebar-foreground: 0 0% 85%;
+  --sidebar-border: 0 0% 14%;
+  --sidebar-primary: 120 65% 48%;
+  --sidebar-primary-foreground: 0 0% 4%;
+  --sidebar-accent: 0 0% 13%;
+  --sidebar-accent-foreground: 0 0% 90%;
+  --sidebar-ring: 120 65% 48%;
 
-  --app-font-sans: 'Courier New', Courier, monospace;
+  --app-font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'Courier New', Courier, monospace;
 }
@@ -171,7 +171,7 @@
     @apply border-border;
   }
   body {
-    @apply font-mono antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-background text-foreground;
   }
 }
 
