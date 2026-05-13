@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { accountsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { encryptPassword, decryptPassword } from "../lib/crypto";
 import {
   ListAccountsQueryParams,
@@ -32,6 +32,7 @@ function formatAccount(acc: typeof accountsTable.$inferSelect) {
     id: acc.id,
     email: acc.email,
     password: decryptPassword(acc.passwordEncrypted),
+    useCount: acc.useCount ?? 0,
     status: acc.status,
     notes: acc.notes ?? null,
     tags: acc.tags ?? [],
@@ -195,6 +196,43 @@ router.post("/accounts", async (req, res) => {
   res.status(201).json(formatAccount(created!));
 });
 
+router.get("/accounts/analytics", async (req, res) => {
+  const accounts = await db.select().from(accountsTable);
+
+  const totalUses = accounts.reduce((sum, a) => sum + (a.useCount ?? 0), 0);
+  const totalAccounts = accounts.length;
+
+  const statusCounts: Record<string, number> = {};
+  for (const a of accounts) {
+    statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1;
+  }
+  const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({ status, count }));
+
+  const topAccounts = [...accounts]
+    .sort((a, b) => (b.useCount ?? 0) - (a.useCount ?? 0))
+    .slice(0, 8)
+    .map((a) => ({ id: a.id, email: a.email, useCount: a.useCount ?? 0, status: a.status }));
+
+  const tagCounts: Record<string, number> = {};
+  for (const a of accounts) {
+    for (const tag of a.tags ?? []) {
+      tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+    }
+  }
+  const tagDistribution = Object.entries(tagCounts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  const cooldownAccounts = accounts.filter((a) => a.cooldownDurationHours != null);
+  const averageCooldownHours =
+    cooldownAccounts.length > 0
+      ? cooldownAccounts.reduce((sum, a) => sum + (a.cooldownDurationHours ?? 0), 0) / cooldownAccounts.length
+      : null;
+
+  res.json({ totalUses, totalAccounts, averageCooldownHours, statusDistribution, topAccounts, tagDistribution });
+});
+
 router.get("/accounts/:id", async (req, res) => {
   const id = parseInt(req.params.id);
   if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
@@ -318,7 +356,12 @@ router.post("/accounts/:id/use", async (req, res) => {
   const now = new Date();
   const [updated] = await db
     .update(accountsTable)
-    .set({ status: "in-use", lastUsedAt: now, updatedAt: now })
+    .set({
+      status: "in-use",
+      lastUsedAt: now,
+      updatedAt: now,
+      useCount: sql`${accountsTable.useCount} + 1`,
+    })
     .where(eq(accountsTable.id, id))
     .returning();
 

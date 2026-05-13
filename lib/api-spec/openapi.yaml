@@ -265,7 +265,7 @@ paths:
     post:
       operationId: markAccountInUse
       tags: [accounts]
-      summary: Mark an account as in use (updates lastUsedAt)
+      summary: Mark an account as in use (updates lastUsedAt and increments useCount)
       parameters:
         - name: id
           in: path
@@ -281,6 +281,19 @@ paths:
                 $ref: "#/components/schemas/Account"
         "404":
           description: Not found
+
+  /accounts/analytics:
+    get:
+      operationId: getAccountAnalytics
+      tags: [accounts]
+      summary: Get rich analytics data for the statistics page
+      responses:
+        "200":
+          description: Analytics data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountAnalytics"
 
 components:
   schemas:
@@ -307,6 +320,8 @@ components:
           type: string
         password:
           type: ["string", "null"]
+        useCount:
+          type: integer
         status:
           type: string
           enum: [available, in-use, cooling-down, archived]
@@ -454,3 +469,53 @@ components:
           type: array
           items:
             type: string
+
+    AccountAnalytics:
+      type: object
+      required:
+        - statusDistribution
+        - topAccounts
+        - tagDistribution
+        - totalUses
+        - totalAccounts
+      properties:
+        totalUses:
+          type: integer
+        totalAccounts:
+          type: integer
+        averageCooldownHours:
+          type: ["number", "null"]
+        statusDistribution:
+          type: array
+          items:
+            type: object
+            required: [status, count]
+            properties:
+              status:
+                type: string
+              count:
+                type: integer
+        topAccounts:
+          type: array
+          items:
+            type: object
+            required: [id, email, useCount, status]
+            properties:
+              id:
+                type: integer
+              email:
+                type: string
+              useCount:
+                type: integer
+              status:
+                type: string
+        tagDistribution:
+          type: array
+          items:
+            type: object
+            required: [tag, count]
+            properties:
+              tag:
+                type: string
+              count:
+                type: integer

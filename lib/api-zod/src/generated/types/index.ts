@@ -7,6 +7,10 @@
  */
 
 export * from "./account";
+export * from "./accountAnalytics";
+export * from "./accountAnalyticsStatusDistributionItem";
+export * from "./accountAnalyticsTagDistributionItem";
+export * from "./accountAnalyticsTopAccountsItem";
 export * from "./accountExport";
 export * from "./accountImportPayload";
 export * from "./accountInput";

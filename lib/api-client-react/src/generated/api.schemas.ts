@@ -23,6 +23,7 @@ export interface Account {
   email: string;
   /** @nullable */
   password?: string | null;
+  useCount?: number;
   status: AccountStatus;
   /** @nullable */
   notes?: string | null;
@@ -101,6 +102,33 @@ export interface ImportResult {
   imported: number;
   skipped: number;
   errors?: string[];
+}
+
+export type AccountAnalyticsStatusDistributionItem = {
+  status: string;
+  count: number;
+};
+
+export type AccountAnalyticsTopAccountsItem = {
+  id: number;
+  email: string;
+  useCount: number;
+  status: string;
+};
+
+export type AccountAnalyticsTagDistributionItem = {
+  tag: string;
+  count: number;
+};
+
+export interface AccountAnalytics {
+  totalUses: number;
+  totalAccounts: number;
+  /** @nullable */
+  averageCooldownHours?: number | null;
+  statusDistribution: AccountAnalyticsStatusDistributionItem[];
+  topAccounts: AccountAnalyticsTopAccountsItem[];
+  tagDistribution: AccountAnalyticsTagDistributionItem[];
 }
 
 export type ListAccountsParams = {

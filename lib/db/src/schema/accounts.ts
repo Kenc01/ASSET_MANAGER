@@ -1,4 +1,4 @@
-import { pgTable, serial, text, real, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, real, integer, timestamp, pgEnum } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -19,6 +19,7 @@ export const accountsTable = pgTable("accounts", {
   cooldownDurationHours: real("cooldown_duration_hours"),
   cooldownStartedAt: timestamp("cooldown_started_at", { withTimezone: true }),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  useCount: integer("use_count").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

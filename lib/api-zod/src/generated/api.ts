@@ -38,6 +38,7 @@ export const ListAccountsResponseItem = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -119,6 +120,7 @@ export const GetAccountResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -149,6 +151,7 @@ export const UpdateAccountResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -182,6 +185,7 @@ export const UpdateAccountStatusResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -208,6 +212,7 @@ export const StartCooldownResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -230,6 +235,7 @@ export const CancelCooldownResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -242,7 +248,7 @@ export const CancelCooldownResponse = zod.object({
 });
 
 /**
- * @summary Mark an account as in use (updates lastUsedAt)
+ * @summary Mark an account as in use (updates lastUsedAt and increments useCount)
  */
 export const MarkAccountInUseParams = zod.object({
   id: zod.coerce.number(),
@@ -252,6 +258,7 @@ export const MarkAccountInUseResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
+  useCount: zod.number().optional(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -261,4 +268,33 @@ export const MarkAccountInUseResponse = zod.object({
   lastUsedAt: zod.coerce.date().nullish(),
   createdAt: zod.coerce.date(),
   updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Get rich analytics data for the statistics page
+ */
+export const GetAccountAnalyticsResponse = zod.object({
+  totalUses: zod.number(),
+  totalAccounts: zod.number(),
+  averageCooldownHours: zod.number().nullish(),
+  statusDistribution: zod.array(
+    zod.object({
+      status: zod.string(),
+      count: zod.number(),
+    }),
+  ),
+  topAccounts: zod.array(
+    zod.object({
+      id: zod.number(),
+      email: zod.string(),
+      useCount: zod.number(),
+      status: zod.string(),
+    }),
+  ),
+  tagDistribution: zod.array(
+    zod.object({
+      tag: zod.string(),
+      count: zod.number(),
+    }),
+  ),
 });

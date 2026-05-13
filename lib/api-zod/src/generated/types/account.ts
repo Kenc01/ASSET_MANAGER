@@ -12,6 +12,7 @@ export interface Account {
   email: string;
   /** @nullable */
   password?: string | null;
+  useCount?: number;
   status: AccountStatus;
   /** @nullable */
   notes?: string | null;

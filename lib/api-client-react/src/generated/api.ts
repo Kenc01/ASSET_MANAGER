@@ -18,6 +18,7 @@ import type {
 
 import type {
   Account,
+  AccountAnalytics,
   AccountExport,
   AccountImportPayload,
   AccountInput,
@@ -1048,7 +1049,7 @@ export const useCancelCooldown = <
 };
 
 /**
- * @summary Mark an account as in use (updates lastUsedAt)
+ * @summary Mark an account as in use (updates lastUsedAt and increments useCount)
  */
 export const getMarkAccountInUseUrl = (id: number) => {
   return `/api/accounts/${id}/use`;
@@ -1109,7 +1110,7 @@ export type MarkAccountInUseMutationResult = NonNullable<
 export type MarkAccountInUseMutationError = ErrorType<void>;
 
 /**
- * @summary Mark an account as in use (updates lastUsedAt)
+ * @summary Mark an account as in use (updates lastUsedAt and increments useCount)
  */
 export const useMarkAccountInUse = <
   TError = ErrorType<void>,
@@ -1130,3 +1131,78 @@ export const useMarkAccountInUse = <
 > => {
   return useMutation(getMarkAccountInUseMutationOptions(options));
 };
+
+/**
+ * @summary Get rich analytics data for the statistics page
+ */
+export const getGetAccountAnalyticsUrl = () => {
+  return `/api/accounts/analytics`;
+};
+
+export const getAccountAnalytics = async (
+  options?: RequestInit,
+): Promise<AccountAnalytics> => {
+  return customFetch<AccountAnalytics>(getGetAccountAnalyticsUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetAccountAnalyticsQueryKey = () => {
+  return [`/api/accounts/analytics`] as const;
+};
+
+export const getGetAccountAnalyticsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAccountAnalytics>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAccountAnalytics>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetAccountAnalyticsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getAccountAnalytics>>
+  > = ({ signal }) => getAccountAnalytics({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAccountAnalytics>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetAccountAnalyticsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAccountAnalytics>>
+>;
+export type GetAccountAnalyticsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get rich analytics data for the statistics page
+ */
+
+export function useGetAccountAnalytics<
+  TData = Awaited<ReturnType<typeof getAccountAnalytics>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getAccountAnalytics>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetAccountAnalyticsQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
