@@ -21,6 +21,8 @@ export const AccountStatus = {
 export interface Account {
   id: number;
   email: string;
+  /** @nullable */
+  password?: string | null;
   status: AccountStatus;
   /** @nullable */
   notes?: string | null;

@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { formatDistanceToNow, differenceInSeconds } from "date-fns";
 import { 
   MoreVertical, 
-  Lock, 
+  Eye,
+  EyeOff,
+  Copy,
   Play, 
   CheckCircle2, 
   XCircle, 
@@ -17,7 +19,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -71,8 +72,8 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
 
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   
-  // Timer state
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
   useEffect(() => {
@@ -82,8 +83,6 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
       const updateTimer = () => {
         const secs = differenceInSeconds(endsAt, new Date());
         setTimeLeft(secs > 0 ? secs : 0);
-        
-        // Auto-refresh if timer hits 0
         if (secs <= 0) {
           queryClient.invalidateQueries({ queryKey: getListAccountsQueryKey() });
           queryClient.invalidateQueries({ queryKey: getGetAccountStatsQueryKey() });
@@ -102,9 +101,14 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    
     if (h > 0) return `${h}h ${m}m`;
     return `${m}m ${s}s`;
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text).then(() => {
+      toast({ title: `${label} copied to clipboard` });
+    });
   };
 
   const handleStatusChange = (status: "available" | "in-use" | "archived") => {
@@ -180,15 +184,56 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
     }
   };
 
+  const maskedPassword = account.password
+    ? "•".repeat(Math.min(account.password.length, 12))
+    : "••••••••";
+
   return (
     <>
-      <Card className="flex flex-col border-border/50 bg-card/50 backdrop-blur hover-elevate transition-colors group">
+      <Card className="flex flex-col border-border/50 bg-card/50 backdrop-blur hover-elevate transition-colors group" data-testid={`card-account-${account.id}`}>
         <CardHeader className="pb-3 pt-5 px-5 flex flex-row items-start justify-between space-y-0">
-          <div className="flex flex-col gap-1.5 overflow-hidden">
-            <CardTitle className="text-base font-semibold truncate text-foreground flex items-center gap-2">
-              {account.email}
-              <Lock className="h-3 w-3 text-muted-foreground/70" />
-            </CardTitle>
+          <div className="flex flex-col gap-1.5 overflow-hidden flex-1 min-w-0">
+            {/* Email row with copy button */}
+            <div className="flex items-center gap-1.5 group/email">
+              <CardTitle className="text-base font-semibold truncate text-foreground font-mono" data-testid={`text-email-${account.id}`}>
+                {account.email}
+              </CardTitle>
+              <button
+                onClick={() => copyToClipboard(account.email, "Email")}
+                className="opacity-0 group-hover/email:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                title="Copy email"
+                data-testid={`button-copy-email-${account.id}`}
+              >
+                <Copy className="h-3 w-3" />
+              </button>
+            </div>
+
+            {/* Password row */}
+            <div className="flex items-center gap-1.5 group/pass">
+              <span className="text-sm font-mono text-muted-foreground tracking-wider" data-testid={`text-password-${account.id}`}>
+                {showPassword ? (account.password ?? "—") : maskedPassword}
+              </span>
+              <button
+                onClick={() => setShowPassword((v) => !v)}
+                className="opacity-0 group-hover/pass:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                title={showPassword ? "Hide password" : "Show password"}
+                data-testid={`button-toggle-password-${account.id}`}
+              >
+                {showPassword ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
+              </button>
+              {account.password && (
+                <button
+                  onClick={() => copyToClipboard(account.password!, "Password")}
+                  className="opacity-0 group-hover/pass:opacity-100 transition-opacity p-0.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground"
+                  title="Copy password"
+                  data-testid={`button-copy-password-${account.id}`}
+                >
+                  <Copy className="h-3 w-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Status + last used */}
             <div className="flex items-center gap-2 mt-1">
               <Badge variant="outline" className={`font-medium ${getStatusColor(account.status)}`}>
                 {account.status === "cooling-down" && timeLeft !== null && timeLeft > 0 ? (
@@ -210,7 +255,7 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0 -mr-2 text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" className="h-8 w-8 p-0 -mr-2 ml-2 shrink-0 text-muted-foreground hover:text-foreground" data-testid={`button-menu-${account.id}`}>
                 <span className="sr-only">Open menu</span>
                 <MoreVertical className="h-4 w-4" />
               </Button>
@@ -297,27 +342,20 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
           </div>
         </CardContent>
         
-        <CardFooter className="px-5 py-3 border-t border-border/40 bg-muted/20 flex justify-between">
-          <div className="text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
-            <Lock className="h-3 w-3" /> Secured
-          </div>
-          
-          <div className="flex gap-2">
-            {account.status === "available" && (
-              <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={handleMarkInUse}>
-                Use Now
-              </Button>
-            )}
-            {account.status === "in-use" && (
-              <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onStartCooldown(account)}>
-                Cooldown
-              </Button>
-            )}
-          </div>
+        <CardFooter className="px-5 py-3 border-t border-border/40 bg-muted/20 flex justify-end gap-2">
+          {account.status === "available" && (
+            <Button size="sm" variant="secondary" className="h-7 text-xs" onClick={handleMarkInUse} data-testid={`button-use-${account.id}`}>
+              Use Now
+            </Button>
+          )}
+          {account.status === "in-use" && (
+            <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => onStartCooldown(account)} data-testid={`button-cooldown-${account.id}`}>
+              Cooldown
+            </Button>
+          )}
         </CardFooter>
       </Card>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -339,7 +377,6 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Archive Confirmation */}
       <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

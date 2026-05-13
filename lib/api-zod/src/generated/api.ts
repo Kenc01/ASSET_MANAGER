@@ -37,6 +37,7 @@ export const ListAccountsQueryParams = zod.object({
 export const ListAccountsResponseItem = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -117,6 +118,7 @@ export const GetAccountParams = zod.object({
 export const GetAccountResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -146,6 +148,7 @@ export const UpdateAccountBody = zod.object({
 export const UpdateAccountResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -178,6 +181,7 @@ export const UpdateAccountStatusBody = zod.object({
 export const UpdateAccountStatusResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -203,6 +207,7 @@ export const StartCooldownBody = zod.object({
 export const StartCooldownResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -224,6 +229,7 @@ export const CancelCooldownParams = zod.object({
 export const CancelCooldownResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
@@ -245,6 +251,7 @@ export const MarkAccountInUseParams = zod.object({
 export const MarkAccountInUseResponse = zod.object({
   id: zod.number(),
   email: zod.string(),
+  password: zod.string().nullish(),
   status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),

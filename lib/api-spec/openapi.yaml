@@ -305,6 +305,8 @@ components:
           type: integer
         email:
           type: string
+        password:
+          type: ["string", "null"]
         status:
           type: string
           enum: [available, in-use, cooling-down, archived]

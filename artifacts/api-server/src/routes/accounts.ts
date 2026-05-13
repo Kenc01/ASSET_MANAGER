@@ -2,7 +2,7 @@ import { Router } from "express";
 import { db } from "@workspace/db";
 import { accountsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
+import { encryptPassword, decryptPassword } from "../lib/crypto";
 import {
   ListAccountsQueryParams,
   CreateAccountBody,
@@ -13,10 +13,6 @@ import {
 } from "@workspace/api-zod";
 
 const router = Router();
-
-function encryptPassword(password: string): string {
-  return bcrypt.hashSync(password, 10);
-}
 
 function computeCooldownEndsAt(
   cooldownStartedAt: Date | null | undefined,
@@ -35,6 +31,7 @@ function formatAccount(acc: typeof accountsTable.$inferSelect) {
   return {
     id: acc.id,
     email: acc.email,
+    password: decryptPassword(acc.passwordEncrypted),
     status: acc.status,
     notes: acc.notes ?? null,
     tags: acc.tags ?? [],
