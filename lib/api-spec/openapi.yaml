@@ -3,13 +3,15 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Dev Account Manager API specification
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: accounts
+    description: Account management operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,262 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /accounts:
+    get:
+      operationId: listAccounts
+      tags: [accounts]
+      summary: List all accounts
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, in-use, cooling-down, archived]
+        - name: tag
+          in: query
+          schema:
+            type: string
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [recently-used, ready-first, cooldown-ending-soon, created-newest]
+      responses:
+        "200":
+          description: List of accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Account"
+    post:
+      operationId: createAccount
+      tags: [accounts]
+      summary: Create a new account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountInput"
+      responses:
+        "201":
+          description: Account created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "400":
+          description: Validation error
+
+  /accounts/stats:
+    get:
+      operationId: getAccountStats
+      tags: [accounts]
+      summary: Get account statistics summary
+      responses:
+        "200":
+          description: Account stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountStats"
+
+  /accounts/export:
+    get:
+      operationId: exportAccounts
+      tags: [accounts]
+      summary: Export all accounts as JSON
+      responses:
+        "200":
+          description: Exported accounts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountExport"
+
+  /accounts/import:
+    post:
+      operationId: importAccounts
+      tags: [accounts]
+      summary: Import accounts from JSON
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountImportPayload"
+      responses:
+        "200":
+          description: Import result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportResult"
+
+  /accounts/{id}:
+    get:
+      operationId: getAccount
+      tags: [accounts]
+      summary: Get a single account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Account found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateAccount
+      tags: [accounts]
+      summary: Update an account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdate"
+      responses:
+        "200":
+          description: Account updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+    delete:
+      operationId: deleteAccount
+      tags: [accounts]
+      summary: Delete an account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+
+  /accounts/{id}/status:
+    patch:
+      operationId: updateAccountStatus
+      tags: [accounts]
+      summary: Update account status
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StatusUpdate"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+
+  /accounts/{id}/cooldown:
+    post:
+      operationId: startCooldown
+      tags: [accounts]
+      summary: Start cooldown timer for an account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CooldownInput"
+      responses:
+        "200":
+          description: Cooldown started
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+    delete:
+      operationId: cancelCooldown
+      tags: [accounts]
+      summary: Cancel an active cooldown
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Cooldown cancelled
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+
+  /accounts/{id}/use:
+    post:
+      operationId: markAccountInUse
+      tags: [accounts]
+      summary: Mark an account as in use (updates lastUsedAt)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Marked in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        "404":
+          description: Not found
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +292,163 @@ components:
       required:
         - status
 
+    Account:
+      type: object
+      required:
+        - id
+        - email
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        email:
+          type: string
+        status:
+          type: string
+          enum: [available, in-use, cooling-down, archived]
+        notes:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        cooldownDurationHours:
+          type: ["number", "null"]
+        cooldownStartedAt:
+          type: ["string", "null"]
+          format: date-time
+        cooldownEndsAt:
+          type: ["string", "null"]
+          format: date-time
+        lastUsedAt:
+          type: ["string", "null"]
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AccountInput:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        cooldownDurationHours:
+          type: number
+
+    AccountUpdate:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        notes:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        cooldownDurationHours:
+          type: number
+
+    StatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [available, in-use, cooling-down, archived]
+
+    CooldownInput:
+      type: object
+      required:
+        - durationHours
+      properties:
+        durationHours:
+          type: number
+
+    AccountStats:
+      type: object
+      required:
+        - total
+        - available
+        - inUse
+        - coolingDown
+        - archived
+        - readySoon
+      properties:
+        total:
+          type: integer
+        available:
+          type: integer
+        inUse:
+          type: integer
+        coolingDown:
+          type: integer
+        archived:
+          type: integer
+        readySoon:
+          type: integer
+
+    AccountExport:
+      type: object
+      required:
+        - email
+        - status
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+        notes:
+          type: ["string", "null"]
+        tags:
+          type: array
+          items:
+            type: string
+        cooldownDurationHours:
+          type: ["number", "null"]
+        status:
+          type: string
+
+    AccountImportPayload:
+      type: object
+      required:
+        - accounts
+      properties:
+        accounts:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountExport"
+
+    ImportResult:
+      type: object
+      required:
+        - imported
+        - skipped
+      properties:
+        imported:
+          type: integer
+        skipped:
+          type: integer
+        errors:
+          type: array
+          items:
+            type: string

@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Dev Account Manager"
+version = "1.0.0"
+id = "artifacts/dev-account-manager"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23495
+
+[services.development]
+run = "pnpm --filter @workspace/dev-account-manager run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/dev-account-manager", "run", "build" ]
+publicDir = "artifacts/dev-account-manager/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23495"
+BASE_PATH = "/"

@@ -1,0 +1,134 @@
+I can’t help you evade usage limits, bypass bans, or “crack” a service by cycling accounts. That would violate most platforms’ terms and could get accounts blocked or flagged.
+
+What I *can* help with is building a legitimate **account/workspace management dashboard** for your own testing, sandbox environments, or multi-project organization — without automating abuse or ban evasion.
+
+Here’s a safe version of the prompt you can paste into [Replit](https://replit.com?utm_source=chatgpt.com) to build a clean local dashboard for managing development/test accounts you legitimately own:
+
+---
+
+Create a modern full-stack web app called **Dev Account Manager**.
+
+Tech stack:
+
+* Frontend: React + Tailwind CSS
+* Backend: Node.js + Express
+* Database: SQLite
+* Use Vite for frontend setup
+* Dark modern UI inspired by Linear/Vercel
+* Responsive design
+
+Main purpose:
+A local dashboard to organize and track development/test accounts and workspace usage for personal productivity.
+
+Features:
+
+1. Account Dashboard
+
+* Show all accounts in card layout
+* Each card displays:
+
+  * Email
+  * Password (masked by default with show/hide toggle)
+  * Status badge
+  * Notes
+  * Last Used time
+  * Cooldown timer
+  * Tags
+
+2. Status System
+   Each account can have statuses:
+
+* Available (green)
+* In Use (blue)
+* Cooling Down (orange)
+* Archived (gray)
+
+3. Cooldown Timer
+
+* User can press “Start Cooldown”
+* Set cooldown duration manually (example: 30 hours)
+* Live countdown timer updates every second
+* When cooldown finishes:
+
+  * Card automatically turns green
+  * Shows “Ready”
+
+4. Actions
+   Buttons:
+
+* Mark In Use
+* Start Cooldown
+* Mark Available
+* Archive
+* Edit
+* Delete
+
+5. Add Account Modal
+   Fields:
+
+* Email
+* Password
+* Notes
+* Tags
+* Cooldown Duration
+
+6. Search and Filters
+
+* Search by email or tag
+* Filter by status
+* Sort by:
+
+  * Recently used
+  * Ready first
+  * Cooldown ending soon
+
+7. Security
+
+* Store data locally using SQLite
+* Encrypt passwords before saving
+* Add optional master password login
+
+8. Analytics Section
+   Show:
+
+* Total accounts
+* Available accounts
+* Cooling down
+* In use
+
+9. UI Requirements
+
+* Beautiful dark theme
+* Smooth animations
+* Glassmorphism cards
+* Sidebar navigation
+* Dashboard statistics cards
+* Real-time timer updates
+
+10. Extra Features
+
+* Export/import accounts as JSON
+* One-click copy email/password
+* Toast notifications
+* Confirmation dialogs
+* Auto-save changes
+
+Project structure:
+
+* Separate frontend and backend folders
+* Clean reusable components
+* REST API architecture
+* Include README with setup instructions
+
+Generate:
+
+* Full working code
+* Database schema
+* API routes
+* Frontend pages
+* Tailwind styling
+* Instructions to run locally
+
+---
+
+That keeps it within legitimate productivity/account organization use instead of bypassing platform restrictions.
