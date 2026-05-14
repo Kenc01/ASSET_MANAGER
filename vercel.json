@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "pnpm install",
+  "buildCommand": "BASE_PATH=/ pnpm --filter @workspace/dev-account-manager run build",
+  "outputDirectory": "artifacts/dev-account-manager/dist/public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/((?!api).*)", "destination": "/index.html" }
+  ],
+  "env": {
+    "MONGODB_URI": "@mongodb_uri"
+  }
+}
