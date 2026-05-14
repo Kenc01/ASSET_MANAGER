@@ -11,9 +11,5 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/((?!api).*)", "destination": "/index.html" }
-  ],
-  "env": {
-    "MONGODB_URI": "@mongodb_uri",
-    "SESSION_SECRET": "@session_secret"
-  }
+  ]
 }
