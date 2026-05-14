@@ -535,12 +535,12 @@ export const useImportAccounts = <
 /**
  * @summary Get a single account
  */
-export const getGetAccountUrl = (id: number) => {
+export const getGetAccountUrl = (id: string) => {
   return `/api/accounts/${id}`;
 };
 
 export const getAccount = async (
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<Account> => {
   return customFetch<Account>(getGetAccountUrl(id), {
@@ -549,7 +549,7 @@ export const getAccount = async (
   });
 };
 
-export const getGetAccountQueryKey = (id: number) => {
+export const getGetAccountQueryKey = (id: string) => {
   return [`/api/accounts/${id}`] as const;
 };
 
@@ -557,7 +557,7 @@ export const getGetAccountQueryOptions = <
   TData = Awaited<ReturnType<typeof getAccount>>,
   TError = ErrorType<void>,
 >(
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getAccount>>,
@@ -600,7 +600,7 @@ export function useGetAccount<
   TData = Awaited<ReturnType<typeof getAccount>>,
   TError = ErrorType<void>,
 >(
-  id: number,
+  id: string,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getAccount>>,
@@ -622,12 +622,12 @@ export function useGetAccount<
 /**
  * @summary Update an account
  */
-export const getUpdateAccountUrl = (id: number) => {
+export const getUpdateAccountUrl = (id: string) => {
   return `/api/accounts/${id}`;
 };
 
 export const updateAccount = async (
-  id: number,
+  id: string,
   accountUpdate: AccountUpdate,
   options?: RequestInit,
 ): Promise<Account> => {
@@ -646,14 +646,14 @@ export const getUpdateAccountMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateAccount>>,
     TError,
-    { id: number; data: BodyType<AccountUpdate> },
+    { id: string; data: BodyType<AccountUpdate> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateAccount>>,
   TError,
-  { id: number; data: BodyType<AccountUpdate> },
+  { id: string; data: BodyType<AccountUpdate> },
   TContext
 > => {
   const mutationKey = ["updateAccount"];
@@ -667,7 +667,7 @@ export const getUpdateAccountMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateAccount>>,
-    { id: number; data: BodyType<AccountUpdate> }
+    { id: string; data: BodyType<AccountUpdate> }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -693,14 +693,14 @@ export const useUpdateAccount = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateAccount>>,
     TError,
-    { id: number; data: BodyType<AccountUpdate> },
+    { id: string; data: BodyType<AccountUpdate> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateAccount>>,
   TError,
-  { id: number; data: BodyType<AccountUpdate> },
+  { id: string; data: BodyType<AccountUpdate> },
   TContext
 > => {
   return useMutation(getUpdateAccountMutationOptions(options));
@@ -709,12 +709,12 @@ export const useUpdateAccount = <
 /**
  * @summary Delete an account
  */
-export const getDeleteAccountUrl = (id: number) => {
+export const getDeleteAccountUrl = (id: string) => {
   return `/api/accounts/${id}`;
 };
 
 export const deleteAccount = async (
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<void> => {
   return customFetch<void>(getDeleteAccountUrl(id), {
@@ -730,14 +730,14 @@ export const getDeleteAccountMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteAccount>>,
     TError,
-    { id: number },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteAccount>>,
   TError,
-  { id: number },
+  { id: string },
   TContext
 > => {
   const mutationKey = ["deleteAccount"];
@@ -751,7 +751,7 @@ export const getDeleteAccountMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteAccount>>,
-    { id: number }
+    { id: string }
   > = (props) => {
     const { id } = props ?? {};
 
@@ -777,14 +777,14 @@ export const useDeleteAccount = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteAccount>>,
     TError,
-    { id: number },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof deleteAccount>>,
   TError,
-  { id: number },
+  { id: string },
   TContext
 > => {
   return useMutation(getDeleteAccountMutationOptions(options));
@@ -793,12 +793,12 @@ export const useDeleteAccount = <
 /**
  * @summary Update account status
  */
-export const getUpdateAccountStatusUrl = (id: number) => {
+export const getUpdateAccountStatusUrl = (id: string) => {
   return `/api/accounts/${id}/status`;
 };
 
 export const updateAccountStatus = async (
-  id: number,
+  id: string,
   statusUpdate: StatusUpdate,
   options?: RequestInit,
 ): Promise<Account> => {
@@ -817,14 +817,14 @@ export const getUpdateAccountStatusMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateAccountStatus>>,
     TError,
-    { id: number; data: BodyType<StatusUpdate> },
+    { id: string; data: BodyType<StatusUpdate> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateAccountStatus>>,
   TError,
-  { id: number; data: BodyType<StatusUpdate> },
+  { id: string; data: BodyType<StatusUpdate> },
   TContext
 > => {
   const mutationKey = ["updateAccountStatus"];
@@ -838,7 +838,7 @@ export const getUpdateAccountStatusMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateAccountStatus>>,
-    { id: number; data: BodyType<StatusUpdate> }
+    { id: string; data: BodyType<StatusUpdate> }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -864,14 +864,14 @@ export const useUpdateAccountStatus = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateAccountStatus>>,
     TError,
-    { id: number; data: BodyType<StatusUpdate> },
+    { id: string; data: BodyType<StatusUpdate> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof updateAccountStatus>>,
   TError,
-  { id: number; data: BodyType<StatusUpdate> },
+  { id: string; data: BodyType<StatusUpdate> },
   TContext
 > => {
   return useMutation(getUpdateAccountStatusMutationOptions(options));
@@ -880,12 +880,12 @@ export const useUpdateAccountStatus = <
 /**
  * @summary Start cooldown timer for an account
  */
-export const getStartCooldownUrl = (id: number) => {
+export const getStartCooldownUrl = (id: string) => {
   return `/api/accounts/${id}/cooldown`;
 };
 
 export const startCooldown = async (
-  id: number,
+  id: string,
   cooldownInput: CooldownInput,
   options?: RequestInit,
 ): Promise<Account> => {
@@ -904,14 +904,14 @@ export const getStartCooldownMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof startCooldown>>,
     TError,
-    { id: number; data: BodyType<CooldownInput> },
+    { id: string; data: BodyType<CooldownInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof startCooldown>>,
   TError,
-  { id: number; data: BodyType<CooldownInput> },
+  { id: string; data: BodyType<CooldownInput> },
   TContext
 > => {
   const mutationKey = ["startCooldown"];
@@ -925,7 +925,7 @@ export const getStartCooldownMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof startCooldown>>,
-    { id: number; data: BodyType<CooldownInput> }
+    { id: string; data: BodyType<CooldownInput> }
   > = (props) => {
     const { id, data } = props ?? {};
 
@@ -951,14 +951,14 @@ export const useStartCooldown = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof startCooldown>>,
     TError,
-    { id: number; data: BodyType<CooldownInput> },
+    { id: string; data: BodyType<CooldownInput> },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof startCooldown>>,
   TError,
-  { id: number; data: BodyType<CooldownInput> },
+  { id: string; data: BodyType<CooldownInput> },
   TContext
 > => {
   return useMutation(getStartCooldownMutationOptions(options));
@@ -967,12 +967,12 @@ export const useStartCooldown = <
 /**
  * @summary Cancel an active cooldown
  */
-export const getCancelCooldownUrl = (id: number) => {
+export const getCancelCooldownUrl = (id: string) => {
   return `/api/accounts/${id}/cooldown`;
 };
 
 export const cancelCooldown = async (
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<Account> => {
   return customFetch<Account>(getCancelCooldownUrl(id), {
@@ -988,14 +988,14 @@ export const getCancelCooldownMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof cancelCooldown>>,
     TError,
-    { id: number },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof cancelCooldown>>,
   TError,
-  { id: number },
+  { id: string },
   TContext
 > => {
   const mutationKey = ["cancelCooldown"];
@@ -1009,7 +1009,7 @@ export const getCancelCooldownMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof cancelCooldown>>,
-    { id: number }
+    { id: string }
   > = (props) => {
     const { id } = props ?? {};
 
@@ -1035,14 +1035,14 @@ export const useCancelCooldown = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof cancelCooldown>>,
     TError,
-    { id: number },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof cancelCooldown>>,
   TError,
-  { id: number },
+  { id: string },
   TContext
 > => {
   return useMutation(getCancelCooldownMutationOptions(options));
@@ -1051,12 +1051,12 @@ export const useCancelCooldown = <
 /**
  * @summary Mark an account as in use (updates lastUsedAt and increments useCount)
  */
-export const getMarkAccountInUseUrl = (id: number) => {
+export const getMarkAccountInUseUrl = (id: string) => {
   return `/api/accounts/${id}/use`;
 };
 
 export const markAccountInUse = async (
-  id: number,
+  id: string,
   options?: RequestInit,
 ): Promise<Account> => {
   return customFetch<Account>(getMarkAccountInUseUrl(id), {
@@ -1072,14 +1072,14 @@ export const getMarkAccountInUseMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof markAccountInUse>>,
     TError,
-    { id: number },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
   Awaited<ReturnType<typeof markAccountInUse>>,
   TError,
-  { id: number },
+  { id: string },
   TContext
 > => {
   const mutationKey = ["markAccountInUse"];
@@ -1093,7 +1093,7 @@ export const getMarkAccountInUseMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof markAccountInUse>>,
-    { id: number }
+    { id: string }
   > = (props) => {
     const { id } = props ?? {};
 
@@ -1119,14 +1119,14 @@ export const useMarkAccountInUse = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof markAccountInUse>>,
     TError,
-    { id: number },
+    { id: string },
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationResult<
   Awaited<ReturnType<typeof markAccountInUse>>,
   TError,
-  { id: number },
+  { id: string },
   TContext
 > => {
   return useMutation(getMarkAccountInUseMutationOptions(options));

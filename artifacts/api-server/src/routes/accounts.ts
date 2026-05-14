@@ -1,7 +1,5 @@
 import { Router } from "express";
-import { db } from "@workspace/db";
-import { accountsTable } from "@workspace/db";
-import { eq, sql } from "drizzle-orm";
+import { AccountModel } from "../lib/mongodb";
 import { encryptPassword, decryptPassword } from "../lib/crypto";
 import {
   ListAccountsQueryParams,
@@ -22,14 +20,10 @@ function computeCooldownEndsAt(
   return new Date(cooldownStartedAt.getTime() + cooldownDurationHours * 60 * 60 * 1000);
 }
 
-function formatAccount(acc: typeof accountsTable.$inferSelect) {
-  const cooldownEndsAt = computeCooldownEndsAt(
-    acc.cooldownStartedAt,
-    acc.cooldownDurationHours
-  );
-
+function formatAccount(acc: any) {
+  const cooldownEndsAt = computeCooldownEndsAt(acc.cooldownStartedAt, acc.cooldownDurationHours);
   return {
-    id: acc.id,
+    id: acc._id.toString(),
     email: acc.email,
     password: decryptPassword(acc.passwordEncrypted),
     useCount: acc.useCount ?? 0,
@@ -46,29 +40,23 @@ function formatAccount(acc: typeof accountsTable.$inferSelect) {
 }
 
 router.get("/accounts/stats", async (req, res) => {
-  const accounts = await db.select().from(accountsTable);
+  const accounts = await AccountModel.find();
   const now = new Date();
-
   let available = 0, inUse = 0, coolingDown = 0, archived = 0, readySoon = 0;
-
   for (const acc of accounts) {
     if (acc.status === "available") available++;
     else if (acc.status === "in-use") inUse++;
     else if (acc.status === "cooling-down") {
       coolingDown++;
       const endsAt = computeCooldownEndsAt(acc.cooldownStartedAt, acc.cooldownDurationHours);
-      if (endsAt) {
-        const minutesLeft = (endsAt.getTime() - now.getTime()) / 60000;
-        if (minutesLeft <= 60) readySoon++;
-      }
+      if (endsAt && (endsAt.getTime() - now.getTime()) / 60000 <= 60) readySoon++;
     } else if (acc.status === "archived") archived++;
   }
-
   res.json({ total: accounts.length, available, inUse, coolingDown, archived, readySoon });
 });
 
 router.get("/accounts/export", async (req, res) => {
-  const accounts = await db.select().from(accountsTable);
+  const accounts = await AccountModel.find();
   const exported = accounts.map((acc) => ({
     email: acc.email,
     password: "[encrypted]",
@@ -82,13 +70,9 @@ router.get("/accounts/export", async (req, res) => {
 
 router.post("/accounts/import", async (req, res) => {
   const parsed = ImportAccountsBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload" });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: "Invalid payload" }); return; }
 
-  let imported = 0;
-  let skipped = 0;
+  let imported = 0, skipped = 0;
   const errors: string[] = [];
 
   for (const item of parsed.data.accounts) {
@@ -97,14 +81,13 @@ router.post("/accounts/import", async (req, res) => {
         item.password && item.password !== "[encrypted]"
           ? item.password
           : Math.random().toString(36).slice(2);
-      await db.insert(accountsTable).values({
+      await AccountModel.create({
         email: item.email,
         passwordEncrypted: encryptPassword(password),
-        status: (item.status as typeof accountsTable.$inferInsert["status"]) ?? "available",
+        status: item.status ?? "available",
         notes: item.notes ?? null,
         tags: item.tags ?? [],
         cooldownDurationHours: item.cooldownDurationHours ?? null,
-        updatedAt: new Date(),
       });
       imported++;
     } catch {
@@ -112,8 +95,37 @@ router.post("/accounts/import", async (req, res) => {
       errors.push(`Failed to import ${item.email}`);
     }
   }
-
   res.json({ imported, skipped, errors });
+});
+
+router.get("/accounts/analytics", async (req, res) => {
+  const accounts = await AccountModel.find();
+  const totalUses = accounts.reduce((sum, a) => sum + (a.useCount ?? 0), 0);
+  const statusCounts: Record<string, number> = {};
+  for (const a of accounts) {
+    statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1;
+  }
+  const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({ status, count }));
+  const topAccounts = [...accounts]
+    .sort((a, b) => (b.useCount ?? 0) - (a.useCount ?? 0))
+    .slice(0, 8)
+    .map((a) => ({ id: a._id.toString(), email: a.email, useCount: a.useCount ?? 0, status: a.status }));
+  const tagCounts: Record<string, number> = {};
+  for (const a of accounts) {
+    for (const tag of a.tags ?? []) {
+      tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
+    }
+  }
+  const tagDistribution = Object.entries(tagCounts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+  const cooldownAccounts = accounts.filter((a) => a.cooldownDurationHours != null);
+  const averageCooldownHours =
+    cooldownAccounts.length > 0
+      ? cooldownAccounts.reduce((sum, a) => sum + (a.cooldownDurationHours ?? 0), 0) / cooldownAccounts.length
+      : null;
+  res.json({ totalUses, totalAccounts: accounts.length, averageCooldownHours, statusDistribution, topAccounts, tagDistribution });
 });
 
 router.get("/accounts", async (req, res) => {
@@ -123,41 +135,23 @@ router.get("/accounts", async (req, res) => {
   const tagFilter = query.success ? query.data.tag : undefined;
   const sort = query.success ? query.data.sort : undefined;
 
-  let accounts = await db.select().from(accountsTable);
-
+  const filter: Record<string, any> = {};
+  if (statusFilter) filter.status = statusFilter;
+  if (tagFilter) filter.tags = tagFilter;
   if (search) {
-    const lower = search.toLowerCase();
-    accounts = accounts.filter(
-      (a) =>
-        a.email.toLowerCase().includes(lower) ||
-        (a.tags ?? []).some((t: string) => t.toLowerCase().includes(lower))
-    );
+    filter.$or = [
+      { email: { $regex: search, $options: "i" } },
+      { tags: { $regex: search, $options: "i" } },
+    ];
   }
 
-  if (statusFilter) {
-    accounts = accounts.filter((a) => a.status === statusFilter);
-  }
-
-  if (tagFilter) {
-    accounts = accounts.filter((a) => (a.tags ?? []).includes(tagFilter));
-  }
+  let accounts = await AccountModel.find(filter);
 
   if (sort === "recently-used") {
-    accounts.sort((a, b) => {
-      const ta = a.lastUsedAt?.getTime() ?? 0;
-      const tb = b.lastUsedAt?.getTime() ?? 0;
-      return tb - ta;
-    });
+    accounts.sort((a, b) => (b.lastUsedAt?.getTime() ?? 0) - (a.lastUsedAt?.getTime() ?? 0));
   } else if (sort === "ready-first") {
-    const statusOrder: Record<string, number> = {
-      available: 0,
-      "in-use": 1,
-      "cooling-down": 2,
-      archived: 3,
-    };
-    accounts.sort(
-      (a, b) => (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9)
-    );
+    const order: Record<string, number> = { available: 0, "in-use": 1, "cooling-down": 2, archived: 3 };
+    accounts.sort((a, b) => (order[a.status] ?? 9) - (order[b.status] ?? 9));
   } else if (sort === "cooldown-ending-soon") {
     accounts.sort((a, b) => {
       const ea = computeCooldownEndsAt(a.cooldownStartedAt, a.cooldownDurationHours);
@@ -173,198 +167,95 @@ router.get("/accounts", async (req, res) => {
 
 router.post("/accounts", async (req, res) => {
   const parsed = CreateAccountBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload", details: parsed.error });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: "Invalid payload", details: parsed.error }); return; }
 
   const { email, password, notes, tags, cooldownDurationHours } = parsed.data;
-
-  const [created] = await db
-    .insert(accountsTable)
-    .values({
-      email,
-      passwordEncrypted: encryptPassword(password),
-      status: "available",
-      notes: notes ?? null,
-      tags: tags ?? [],
-      cooldownDurationHours: cooldownDurationHours ?? null,
-      updatedAt: new Date(),
-    })
-    .returning();
-
-  res.status(201).json(formatAccount(created!));
-});
-
-router.get("/accounts/analytics", async (req, res) => {
-  const accounts = await db.select().from(accountsTable);
-
-  const totalUses = accounts.reduce((sum, a) => sum + (a.useCount ?? 0), 0);
-  const totalAccounts = accounts.length;
-
-  const statusCounts: Record<string, number> = {};
-  for (const a of accounts) {
-    statusCounts[a.status] = (statusCounts[a.status] ?? 0) + 1;
-  }
-  const statusDistribution = Object.entries(statusCounts).map(([status, count]) => ({ status, count }));
-
-  const topAccounts = [...accounts]
-    .sort((a, b) => (b.useCount ?? 0) - (a.useCount ?? 0))
-    .slice(0, 8)
-    .map((a) => ({ id: a.id, email: a.email, useCount: a.useCount ?? 0, status: a.status }));
-
-  const tagCounts: Record<string, number> = {};
-  for (const a of accounts) {
-    for (const tag of a.tags ?? []) {
-      tagCounts[tag] = (tagCounts[tag] ?? 0) + 1;
-    }
-  }
-  const tagDistribution = Object.entries(tagCounts)
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  const cooldownAccounts = accounts.filter((a) => a.cooldownDurationHours != null);
-  const averageCooldownHours =
-    cooldownAccounts.length > 0
-      ? cooldownAccounts.reduce((sum, a) => sum + (a.cooldownDurationHours ?? 0), 0) / cooldownAccounts.length
-      : null;
-
-  res.json({ totalUses, totalAccounts, averageCooldownHours, statusDistribution, topAccounts, tagDistribution });
+  const created = await AccountModel.create({
+    email,
+    passwordEncrypted: encryptPassword(password),
+    status: "available",
+    notes: notes ?? null,
+    tags: tags ?? [],
+    cooldownDurationHours: cooldownDurationHours ?? null,
+  });
+  res.status(201).json(formatAccount(created));
 });
 
 router.get("/accounts/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
-  const [acc] = await db.select().from(accountsTable).where(eq(accountsTable.id, id));
+  const acc = await AccountModel.findById(req.params.id).catch(() => null);
   if (!acc) { res.status(404).json({ error: "Not found" }); return; }
-
   res.json(formatAccount(acc));
 });
 
 router.patch("/accounts/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
   const parsed = UpdateAccountBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload" });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: "Invalid payload" }); return; }
 
   const { email, password, notes, tags, cooldownDurationHours } = parsed.data;
-
-  const updates: Partial<typeof accountsTable.$inferInsert> = { updatedAt: new Date() };
+  const updates: Record<string, any> = {};
   if (email !== undefined) updates.email = email;
   if (password !== undefined) updates.passwordEncrypted = encryptPassword(password);
   if (notes !== undefined) updates.notes = notes;
   if (tags !== undefined) updates.tags = tags;
   if (cooldownDurationHours !== undefined) updates.cooldownDurationHours = cooldownDurationHours;
 
-  const [updated] = await db
-    .update(accountsTable)
-    .set(updates)
-    .where(eq(accountsTable.id, id))
-    .returning();
-
+  const updated = await AccountModel.findByIdAndUpdate(req.params.id, updates, { new: true }).catch(() => null);
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
   res.json(formatAccount(updated));
 });
 
 router.delete("/accounts/:id", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
-  const [deleted] = await db
-    .delete(accountsTable)
-    .where(eq(accountsTable.id, id))
-    .returning();
+  const deleted = await AccountModel.findByIdAndDelete(req.params.id).catch(() => null);
   if (!deleted) { res.status(404).json({ error: "Not found" }); return; }
-
   res.status(204).send();
 });
 
 router.patch("/accounts/:id/status", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
   const parsed = UpdateAccountStatusBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload" });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: "Invalid payload" }); return; }
 
-  const [updated] = await db
-    .update(accountsTable)
-    .set({ status: parsed.data.status as typeof accountsTable.$inferInsert["status"], updatedAt: new Date() })
-    .where(eq(accountsTable.id, id))
-    .returning();
-
+  const updated = await AccountModel.findByIdAndUpdate(
+    req.params.id,
+    { status: parsed.data.status },
+    { new: true }
+  ).catch(() => null);
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
   res.json(formatAccount(updated));
 });
 
 router.post("/accounts/:id/cooldown", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
   const parsed = StartCooldownBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: "Invalid payload" });
-    return;
-  }
+  if (!parsed.success) { res.status(400).json({ error: "Invalid payload" }); return; }
 
-  const now = new Date();
-  const [updated] = await db
-    .update(accountsTable)
-    .set({
+  const updated = await AccountModel.findByIdAndUpdate(
+    req.params.id,
+    {
       status: "cooling-down",
       cooldownDurationHours: parsed.data.durationHours,
-      cooldownStartedAt: now,
-      updatedAt: now,
-    })
-    .where(eq(accountsTable.id, id))
-    .returning();
-
+      cooldownStartedAt: new Date(),
+    },
+    { new: true }
+  ).catch(() => null);
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
   res.json(formatAccount(updated));
 });
 
 router.delete("/accounts/:id/cooldown", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
-  const [updated] = await db
-    .update(accountsTable)
-    .set({
-      status: "available",
-      cooldownStartedAt: null,
-      updatedAt: new Date(),
-    })
-    .where(eq(accountsTable.id, id))
-    .returning();
-
+  const updated = await AccountModel.findByIdAndUpdate(
+    req.params.id,
+    { status: "available", cooldownStartedAt: null },
+    { new: true }
+  ).catch(() => null);
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
   res.json(formatAccount(updated));
 });
 
 router.post("/accounts/:id/use", async (req, res) => {
-  const id = parseInt(req.params.id);
-  if (isNaN(id)) { res.status(400).json({ error: "Invalid id" }); return; }
-
-  const now = new Date();
-  const [updated] = await db
-    .update(accountsTable)
-    .set({
-      status: "in-use",
-      lastUsedAt: now,
-      updatedAt: now,
-      useCount: sql`${accountsTable.useCount} + 1`,
-    })
-    .where(eq(accountsTable.id, id))
-    .returning();
-
+  const updated = await AccountModel.findByIdAndUpdate(
+    req.params.id,
+    { status: "in-use", lastUsedAt: new Date(), $inc: { useCount: 1 } },
+    { new: true }
+  ).catch(() => null);
   if (!updated) { res.status(404).json({ error: "Not found" }); return; }
   res.json(formatAccount(updated));
 });

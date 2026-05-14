@@ -19,7 +19,7 @@ export const AccountStatus = {
 } as const;
 
 export interface Account {
-  id: number;
+  id: string;
   email: string;
   /** @nullable */
   password?: string | null;
