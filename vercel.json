@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install",
   "buildCommand": "BASE_PATH=/ pnpm --filter @workspace/dev-account-manager run build",
-  "outputDirectory": "artifacts/dev-account-manager/dist/public",
+  "outputDirectory": "public",
   "functions": {
     "api/index.ts": {
       "maxDuration": 30
