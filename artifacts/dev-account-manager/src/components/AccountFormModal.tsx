@@ -117,10 +117,11 @@ export function AccountFormModal({ isOpen, onOpenChange, account }: AccountFormM
             queryClient.invalidateQueries({ queryKey: getGetAccountStatsQueryKey() });
             onOpenChange(false);
           },
-          onError: () => {
+          onError: (error: any) => {
+            const message = error?.data?.details || error?.message || "Failed to update account.";
             toast({
               title: "Error",
-              description: "Failed to update account.",
+              description: message,
               variant: "destructive",
             });
           },
@@ -148,10 +149,11 @@ export function AccountFormModal({ isOpen, onOpenChange, account }: AccountFormM
             form.reset();
             onOpenChange(false);
           },
-          onError: () => {
+          onError: (error: any) => {
+            const message = error?.data?.details || error?.message || "Failed to create account.";
             toast({
               title: "Error",
-              description: "Failed to create account.",
+              description: message,
               variant: "destructive",
             });
           },

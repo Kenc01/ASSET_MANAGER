@@ -10,10 +10,12 @@ let isConnected = false;
 
 export async function connectDB(): Promise<void> {
   if (isConnected) return;
-  await mongoose.connect(MONGODB_URI as string, {
+  if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+  
+  await mongoose.connect(MONGODB_URI, {
     dbName: "dev-account-manager",
-    tls: true,
-    tlsAllowInvalidCertificates: true,
+    connectTimeoutMS: 10000,
+    socketTimeoutMS: 45000,
   });
   isConnected = true;
 }
