@@ -46,6 +46,9 @@ Thumbs.db
 .github/instructions/nx.instructions.md
 
 # Environment secrets — never commit real values
+# Vercel build output (generated, never commit)
+.vercel/output
+
 .env
 .env.local
 .env.*.local
