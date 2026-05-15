@@ -33,7 +33,7 @@ cpSync(join(ROOT, "public"), staticDir, { recursive: true });
 console.log("\n--- Bundling API function ---");
 const outfile = join(funcDir, "index.mjs");
 run(
-  `pnpm --filter @workspace/api-server exec esbuild ../../api/index.ts` +
+  `pnpm --filter @workspace/api-server exec esbuild ../../deploy-api/index.ts` +
     ` --bundle --platform=node --format=esm --target=node20` +
     ` --outfile="${outfile}"`,
 );
