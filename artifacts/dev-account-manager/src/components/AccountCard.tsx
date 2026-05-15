@@ -53,7 +53,7 @@ import {
   getListAccountsQueryKey,
   getGetAccountStatsQueryKey,
 } from "@workspace/api-client-react";
-import type { Account } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Account } from "@workspace/api-client-react";
 
 interface AccountCardProps {
   account: Account;
@@ -94,6 +94,7 @@ export function AccountCard({ account, onEdit, onStartCooldown }: AccountCardPro
       return () => clearInterval(interval);
     } else {
       setTimeLeft(null);
+      return;
     }
   }, [account.status, account.cooldownEndsAt, queryClient]);
 

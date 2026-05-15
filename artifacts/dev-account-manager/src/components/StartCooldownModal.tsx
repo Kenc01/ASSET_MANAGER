@@ -29,7 +29,7 @@ import {
   getListAccountsQueryKey,
   getGetAccountStatsQueryKey,
 } from "@workspace/api-client-react";
-import type { Account } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Account } from "@workspace/api-client-react";
 
 const cooldownSchema = z.object({
   durationHours: z.coerce.number().min(0.1, "Must be at least 0.1 hours"),

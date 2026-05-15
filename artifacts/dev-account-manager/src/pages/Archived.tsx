@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, ArchiveRestore, LayoutGrid } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -9,7 +9,7 @@ import {
   useListAccounts, 
   getListAccountsQueryKey 
 } from "@workspace/api-client-react";
-import type { Account } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Account } from "@workspace/api-client-react";
 
 import { AccountCard } from "@/components/AccountCard";
 import { AccountFormModal } from "@/components/AccountFormModal";
@@ -23,13 +23,13 @@ export default function Archived() {
   const [selectedAccount, setSelectedAccount] = useState<Account | null>(null);
 
   // Search debounce
-  useState(() => {
+  useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
   const queryParams = {
-    ...(debouncedSearch ? { search: debouncedSearch } : {}),
+    search: debouncedSearch || undefined,
     status: "archived" as const,
   };
 

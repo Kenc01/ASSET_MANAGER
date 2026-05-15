@@ -30,7 +30,7 @@ import {
   getListAccountsQueryKey,
   getGetAccountStatsQueryKey
 } from "@workspace/api-client-react";
-import type { Account, ListAccountsStatus, ListAccountsSort } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Account, ListAccountsStatus, ListAccountsSort } from "@workspace/api-client-react";
 
 import { AccountCard } from "@/components/AccountCard";
 import { AccountFormModal } from "@/components/AccountFormModal";

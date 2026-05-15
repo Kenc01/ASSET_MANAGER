@@ -444,6 +444,7 @@ components:
           type: ["number", "null"]
         status:
           type: string
+          enum: [available, in-use, cooling-down, archived]
 
     AccountImportPayload:
       type: object

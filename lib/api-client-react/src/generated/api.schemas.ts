@@ -19,7 +19,7 @@ export const AccountStatus = {
 } as const;
 
 export interface Account {
-  id: string;
+  id: number;
   email: string;
   /** @nullable */
   password?: string | null;
@@ -83,6 +83,16 @@ export interface AccountStats {
   readySoon: number;
 }
 
+export type AccountExportStatus =
+  (typeof AccountExportStatus)[keyof typeof AccountExportStatus];
+
+export const AccountExportStatus = {
+  available: "available",
+  "in-use": "in-use",
+  "cooling-down": "cooling-down",
+  archived: "archived",
+} as const;
+
 export interface AccountExport {
   email: string;
   password?: string;
@@ -91,7 +101,7 @@ export interface AccountExport {
   tags?: string[];
   /** @nullable */
   cooldownDurationHours?: number | null;
-  status: string;
+  status: AccountExportStatus;
 }
 
 export interface AccountImportPayload {

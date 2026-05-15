@@ -32,7 +32,7 @@ import {
   getListAccountsQueryKey,
   getGetAccountStatsQueryKey,
 } from "@workspace/api-client-react";
-import type { Account } from "@workspace/api-client-react/src/generated/api.schemas";
+import type { Account } from "@workspace/api-client-react";
 
 const accountFormSchema = z.object({
   email: z.string().email("Invalid email address"),

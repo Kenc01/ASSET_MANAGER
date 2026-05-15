@@ -35,7 +35,7 @@ export const ListAccountsQueryParams = zod.object({
 });
 
 export const ListAccountsResponseItem = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -83,7 +83,7 @@ export const ExportAccountsResponseItem = zod.object({
   notes: zod.string().nullish(),
   tags: zod.array(zod.string()).optional(),
   cooldownDurationHours: zod.number().nullish(),
-  status: zod.string(),
+  status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
 });
 export const ExportAccountsResponse = zod.array(ExportAccountsResponseItem);
 
@@ -98,7 +98,7 @@ export const ImportAccountsBody = zod.object({
       notes: zod.string().nullish(),
       tags: zod.array(zod.string()).optional(),
       cooldownDurationHours: zod.number().nullish(),
-      status: zod.string(),
+      status: zod.enum(["available", "in-use", "cooling-down", "archived"]),
     }),
   ),
 });
@@ -113,11 +113,11 @@ export const ImportAccountsResponse = zod.object({
  * @summary Get a single account
  */
 export const GetAccountParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 export const GetAccountResponse = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -136,7 +136,7 @@ export const GetAccountResponse = zod.object({
  * @summary Update an account
  */
 export const UpdateAccountParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 export const UpdateAccountBody = zod.object({
@@ -148,7 +148,7 @@ export const UpdateAccountBody = zod.object({
 });
 
 export const UpdateAccountResponse = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -167,14 +167,14 @@ export const UpdateAccountResponse = zod.object({
  * @summary Delete an account
  */
 export const DeleteAccountParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 /**
  * @summary Update account status
  */
 export const UpdateAccountStatusParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 export const UpdateAccountStatusBody = zod.object({
@@ -182,7 +182,7 @@ export const UpdateAccountStatusBody = zod.object({
 });
 
 export const UpdateAccountStatusResponse = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -201,7 +201,7 @@ export const UpdateAccountStatusResponse = zod.object({
  * @summary Start cooldown timer for an account
  */
 export const StartCooldownParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 export const StartCooldownBody = zod.object({
@@ -209,7 +209,7 @@ export const StartCooldownBody = zod.object({
 });
 
 export const StartCooldownResponse = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -228,11 +228,11 @@ export const StartCooldownResponse = zod.object({
  * @summary Cancel an active cooldown
  */
 export const CancelCooldownParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 export const CancelCooldownResponse = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -251,11 +251,11 @@ export const CancelCooldownResponse = zod.object({
  * @summary Mark an account as in use (updates lastUsedAt and increments useCount)
  */
 export const MarkAccountInUseParams = zod.object({
-  id: zod.coerce.string(),
+  id: zod.coerce.number(),
 });
 
 export const MarkAccountInUseResponse = zod.object({
-  id: zod.string(),
+  id: zod.number(),
   email: zod.string(),
   password: zod.string().nullish(),
   useCount: zod.number().optional(),
@@ -285,7 +285,7 @@ export const GetAccountAnalyticsResponse = zod.object({
   ),
   topAccounts: zod.array(
     zod.object({
-      id: zod.string(),
+      id: zod.number(),
       email: zod.string(),
       useCount: zod.number(),
       status: zod.string(),

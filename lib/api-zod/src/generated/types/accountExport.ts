@@ -5,6 +5,7 @@
  * Dev Account Manager API specification
  * OpenAPI spec version: 0.1.0
  */
+import type { AccountExportStatus } from "./accountExportStatus";
 
 export interface AccountExport {
   email: string;
@@ -14,5 +15,5 @@ export interface AccountExport {
   tags?: string[];
   /** @nullable */
   cooldownDurationHours?: number | null;
-  status: string;
+  status: AccountExportStatus;
 }
