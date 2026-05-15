@@ -12,9 +12,19 @@ app.use("/api", router);
 let dbConnected = false;
 
 export default async function handler(req: any, res: any) {
-  if (!dbConnected) {
-    await connectDB();
-    dbConnected = true;
+  try {
+    if (!dbConnected) {
+      console.log("Attempting to connect to MongoDB...");
+      await connectDB();
+      dbConnected = true;
+      console.log("Successfully connected to MongoDB");
+    }
+    return app(req, res);
+  } catch (error) {
+    console.error("Vercel Handler Error:", error);
+    res.status(500).json({ 
+      error: "Internal Server Error", 
+      details: error instanceof Error ? error.message : String(error) 
+    });
   }
-  return app(req, res);
 }
