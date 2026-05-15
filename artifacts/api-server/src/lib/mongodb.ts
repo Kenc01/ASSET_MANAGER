@@ -1,21 +1,18 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI environment variable is required but was not provided.");
-}
-
 let isConnected = false;
 
 export async function connectDB(): Promise<void> {
   if (isConnected) return;
-  if (!MONGODB_URI) throw new Error("MONGODB_URI is missing");
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error("DATABASE_ERROR: MONGODB_URI environment variable is missing in Vercel settings.");
+  }
   
-  await mongoose.connect(MONGODB_URI, {
+  await mongoose.connect(uri, {
+    bufferCommands: false,
+    connectTimeoutMS: 5000,
     dbName: "dev-account-manager",
-    connectTimeoutMS: 10000,
-    socketTimeoutMS: 45000,
   });
   isConnected = true;
 }
