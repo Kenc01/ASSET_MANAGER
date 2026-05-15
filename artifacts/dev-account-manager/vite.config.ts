@@ -6,12 +6,7 @@ import path from "path";
 const rawPort = process.env.PORT;
 const isBuild = process.argv.includes("build");
 
-if (!isBuild && !rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
-
+// Default to port 3000 if not provided
 const port = rawPort ? Number(rawPort) : 3000;
 
 if (!isBuild && (Number.isNaN(port) || port <= 0)) {
