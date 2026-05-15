@@ -1,0 +1,4 @@
+{
+  "buildCommand": "echo 'Built by root vercel.json'",
+  "outputDirectory": "."
+}
