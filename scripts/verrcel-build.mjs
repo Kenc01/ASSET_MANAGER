@@ -6,14 +6,17 @@ import { fileURLToPath } from "url";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const ROOT = resolve(__dirname, "..");
 
+function run(cmd, opts = {}) {
+  console.log(`> ${cmd}`);
+  execSync(cmd, { stdio: "inherit", cwd: ROOT, ...opts });
+}
+
 // 1. Build the Vite frontend → public/
-console.log("Building frontend...");
-execSync("BASE_PATH=/ pnpm --filter @workspace/dev-account-manager run build", {
-  stdio: "inherit",
-  cwd: ROOT,
-});
+console.log("\n--- Building frontend ---");
+run("BASE_PATH=/ pnpm --filter @workspace/dev-account-manager run build");
 
 // 2. Set up .vercel/output structure (Build Output API v3)
+console.log("\n--- Setting up Vercel output structure ---");
 const outputDir = join(ROOT, ".vercel", "output");
 const staticDir = join(outputDir, "static");
 const funcDir = join(outputDir, "functions", "api", "index.func");
@@ -26,27 +29,16 @@ mkdirSync(funcDir, { recursive: true });
 console.log("Copying static files...");
 cpSync(join(ROOT, "public"), staticDir, { recursive: true });
 
-// 4. Bundle the API serverless function with esbuild
-console.log("Bundling API function...");
-const esbuild = join(
-  ROOT,
-  "artifacts",
-  "api-server",
-  "node_modules",
-  ".bin",
-  "esbuild",
-);
-execSync(
-  `"${esbuild}" api/index.ts \
-    --bundle \
-    --platform=node \
-    --format=esm \
-    --target=node20 \
-    --outfile="${join(funcDir, "index.mjs")}"`,
-  { stdio: "inherit", cwd: ROOT },
+// 4. Bundle the API serverless function with esbuild via pnpm exec
+console.log("\n--- Bundling API function ---");
+const outfile = join(funcDir, "index.mjs");
+run(
+  `pnpm --filter @workspace/api-server exec esbuild ../../api/index.ts` +
+    ` --bundle --platform=node --format=esm --target=node20` +
+    ` --outfile="${outfile}"`,
 );
 
-// 5. Function config
+// 5. Function runtime config
 writeFileSync(
   join(funcDir, ".vc-config.json"),
   JSON.stringify(
@@ -61,7 +53,7 @@ writeFileSync(
   ),
 );
 
-// 6. Vercel output config with routes
+// 6. Vercel deployment config with routes
 writeFileSync(
   join(outputDir, "config.json"),
   JSON.stringify(
@@ -78,4 +70,4 @@ writeFileSync(
   ),
 );
 
-console.log("Vercel build complete!");
+console.log("\nVercel build complete!");
