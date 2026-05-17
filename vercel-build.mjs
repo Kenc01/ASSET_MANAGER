@@ -31,10 +31,10 @@ cpSync(join(ROOT, "public"), staticDir, { recursive: true });
 
 // 4. Bundle the API serverless function with esbuild
 console.log("\n--- Bundling API function ---");
-const outfile = join(funcDir, "index.mjs");
+const outfile = join(funcDir, "index.js");
 run(
   `pnpm --filter @workspace/api-server exec esbuild ../../deploy-api/index.ts` +
-    ` --bundle --platform=node --format=esm --target=node20` +
+    ` --bundle --platform=node --format=cjs --target=node20` +
     ` --outfile="${outfile}"`,
 );
 
@@ -44,7 +44,7 @@ writeFileSync(
   JSON.stringify(
     {
       runtime: "nodejs20.x",
-      handler: "index.mjs",
+      handler: "index.js",
       launcherType: "Nodejs",
       shouldAddHelpers: true,
     },
